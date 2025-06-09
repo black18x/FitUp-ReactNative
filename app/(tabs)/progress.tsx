@@ -19,9 +19,23 @@ import {
   Clock,
   Flame,
   ChevronRight,
+  Trophy,
+  Star,
+  Zap,
 } from 'lucide-react-native';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import { 
+  dailyStats, 
+  achievements, 
+  currentUser,
+  formatDuration,
+  getDaysInPeriod,
+  getStatsForPeriod,
+  getAchievementIcon
+} from '../../data/demoData';
 
 const { width, height } = Dimensions.get('window');
 const isTablet = width > 768;
@@ -49,11 +63,62 @@ export default function ProgressScreen() {
 
   const periods = ['Week', 'Month', 'Year'];
 
+  // Get stats for selected period
+  const periodStats = getStatsForPeriod(selectedPeriod);
+  
+  const stats = [
+    {
+      id: 1,
+      title: 'Workouts',
+      value: periodStats.workouts.toString(),
+      change: '+12%',
+      changeType: 'positive' as const,
+      icon: Activity,
+      color: colors.primary,
+    },
+    {
+      id: 2,
+      title: 'Calories',
+      value: periodStats.calories.toLocaleString(),
+      change: '+8%',
+      changeType: 'positive' as const,
+      icon: Flame,
+      color: colors.accent,
+    },
+    {
+      id: 3,
+      title: 'Duration',
+      value: formatDuration(periodStats.duration),
+      change: '+15%',
+      changeType: 'positive' as const,
+      icon: Clock,
+      color: colors.success,
+    },
+    {
+      id: 4,
+      title: 'Avg Heart Rate',
+      value: `${periodStats.heartRate} bpm`,
+      change: '-2%',
+      changeType: 'positive' as const,
+      icon: Activity,
+      color: colors.error,
+    },
+  ];
+
+  const recentAchievements = achievements.slice(0, 3);
+
+  // Generate chart data based on period stats
+  const chartLabels = selectedPeriod === 'Week' 
+    ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    : selectedPeriod === 'Month'
+    ? ['Week 1', 'Week 2', 'Week 3', 'Week 4']
+    : ['Q1', 'Q2', 'Q3', 'Q4'];
+
   const stepsData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    labels: chartLabels,
     datasets: [
       {
-        data: [6540, 8234, 7892, 9543, 8756, 10234, 8547],
+        data: periodStats.data.slice(0, chartLabels.length).map(stat => stat.steps),
         color: (opacity = 1) => `rgba(16, 185, 129, ${opacity})`,
         strokeWidth: 3,
       },
@@ -61,38 +126,14 @@ export default function ProgressScreen() {
   };
 
   const workoutData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    labels: chartLabels,
     datasets: [
       {
-        data: [45, 0, 60, 35, 0, 75, 40],
+        data: periodStats.data.slice(0, chartLabels.length).map(stat => stat.activeMinutes),
         color: (opacity = 1) => `rgba(249, 115, 22, ${opacity})`,
       },
     ],
   };
-
-  const achievements = [
-    {
-      title: 'First 10K Steps',
-      description: 'Completed your first 10,000 steps in a day',
-      date: '2 days ago',
-      icon: Activity,
-      color: colors.primary,
-    },
-    {
-      title: 'Weekly Goal',
-      description: 'Achieved your weekly workout goal',
-      date: '1 week ago',
-      icon: Target,
-      color: colors.success,
-    },
-    {
-      title: 'Streak Master',
-      description: '7-day workout streak completed',
-      date: '2 weeks ago',
-      icon: Award,
-      color: colors.accent,
-    },
-  ];
 
   const weeklyStats = [
     { label: 'Total Steps', value: '58,746', change: '+12%', icon: Activity, color: colors.primary },
@@ -240,23 +281,23 @@ export default function ProgressScreen() {
             </TouchableOpacity>
           </View>
 
-          {achievements.map((achievement, index) => (
+          {recentAchievements.map((achievement, index) => (
             <TouchableOpacity
-              key={index}
+              key={achievement.id}
               style={[styles.achievementCard, { backgroundColor: colors.card, borderColor: colors.border }]}
             >
-              <View style={[styles.achievementIcon, { backgroundColor: `${achievement.color}15` }]}>
-                <achievement.icon size={24} color={achievement.color} />
+              <View style={[styles.achievementIcon, { backgroundColor: `${colors.primary}15` }]}>
+                <Trophy size={24} color={colors.primary} />
               </View>
               <View style={styles.achievementContent}>
                 <Text style={[styles.achievementTitle, { color: colors.text }]}>
-                  {achievement.title}
+                  {achievement.name}
                 </Text>
                 <Text style={[styles.achievementDescription, { color: colors.textSecondary }]}>
                   {achievement.description}
                 </Text>
                 <Text style={[styles.achievementDate, { color: colors.textSecondary }]}>
-                  {achievement.date}
+                  {achievement.unlockedAt}
                 </Text>
               </View>
               <View style={styles.achievementBadge}>

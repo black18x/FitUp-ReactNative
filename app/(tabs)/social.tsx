@@ -22,8 +22,18 @@ import {
   Award,
   Flame,
   Clock,
+  Star,
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import { 
+  socialPosts, 
+  users, 
+  challenges,
+  formatDuration,
+  getTimeAgo 
+} from '../../data/demoData';
 
 const { width } = Dimensions.get('window');
 const isTablet = width > 768;
@@ -46,99 +56,46 @@ export default function SocialScreen() {
     warning: '#F59E0B',
     error: '#EF4444',
   };
+  // Create display data from imported demo data
+  const challengeIcons = [TrendingUp, Award, Flame, Trophy];
+  const challengeColors = [colors.primary, colors.accent, colors.success, colors.warning];
+  
+  const challengesData = challenges.map((challenge, index) => ({
+    ...challenge,
+    icon: challengeIcons[index % challengeIcons.length],
+    color: challengeColors[index % challengeColors.length],
+    title: challenge.name,
+  }));
 
-  const challenges = [
-    {
-      id: 1,
-      title: '30-Day Step Challenge',
-      participants: 1247,
-      daysLeft: 12,
-      progress: 0.65,
-      icon: TrendingUp,
-      color: colors.primary,
-    },
-    {
-      id: 2,
-      title: 'Push-up Challenge',
-      participants: 523,
-      daysLeft: 5,
-      progress: 0.85,
-      icon: Award,
-      color: colors.accent,
-    },
-  ];
+  // Transform social posts to match UI structure
+  const postsData = socialPosts.map(post => {
+    const user = users.find(u => u.id === post.userId) || {
+      name: post.userName,
+      avatar: post.userAvatar || 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150',
+      verified: Math.random() > 0.5, // Random verification status
+    };
 
-  const posts = [
-    {
-      id: 1,
-      user: {
-        name: 'Sarah Johnson',
-        avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150',
-        verified: true,
-      },
-      type: 'workout',
-      content: 'Just crushed my morning HIIT session! 🔥 45 minutes of pure intensity. Feeling amazing!',
-      workout: {
-        name: 'HIIT Cardio Blast',
-        duration: '45 min',
-        calories: 425,
-      },
-      timestamp: '2 hours ago',
-      likes: 24,
-      comments: 8,
-      image: 'https://images.pexels.com/photos/416778/pexels-photo-416778.jpeg?auto=compress&cs=tinysrgb&w=400',
-    },
-    {
-      id: 2,
-      user: {
-        name: 'Mike Chen',
-        avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
-        verified: false,
-      },
-      type: 'achievement',
-      content: 'New personal record! Finally hit my 10K steps goal for 7 days straight 🎉',
-      achievement: {
-        title: 'Weekly Walker',
-        description: '7-day step goal streak',
+    return {
+      id: parseInt(post.id),
+      user,
+      content: post.content,
+      timestamp: getTimeAgo(post.timestamp),
+      likes: post.likes,
+      comments: post.comments,
+      image: post.image,
+      type: post.workoutName ? 'workout' : (post.achievements?.length ? 'achievement' : 'general'),
+      workout: post.workoutName ? {
+        name: post.workoutName,
+        duration: formatDuration(Math.floor(Math.random() * 60) + 15), // Random duration
+        calories: Math.floor(Math.random() * 400) + 200, // Random calories
+      } : undefined,
+      achievement: post.achievements?.length ? {
+        title: post.achievements[0],
+        description: `Unlocked: ${post.achievements[0]}`,
         icon: Trophy,
-      },
-      timestamp: '4 hours ago',
-      likes: 45,
-      comments: 12,
-    },
-    {
-      id: 3,
-      user: {
-        name: 'Emma Davis',
-        avatar: 'https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=150',
-        verified: true,
-      },
-      type: 'progress',
-      content: 'Month 3 transformation update! The consistency is paying off. Never give up! 💪',
-      progress: {
-        before: 'https://images.pexels.com/photos/4056723/pexels-photo-4056723.jpeg?auto=compress&cs=tinysrgb&w=200',
-        after: 'https://images.pexels.com/photos/4056723/pexels-photo-4056723.jpeg?auto=compress&cs=tinysrgb&w=200',
-        timeframe: '3 months',
-      },
-      timestamp: '6 hours ago',
-      likes: 89,
-      comments: 23,
-    },
-    {
-      id: 4,
-      user: {
-        name: 'Alex Rodriguez',
-        avatar: 'https://images.pexels.com/photos/697509/pexels-photo-697509.jpeg?auto=compress&cs=tinysrgb&w=150',
-        verified: false,
-      },
-      type: 'nutrition',
-      content: 'Meal prep Sunday done! ✅ Healthy choices make healthy habits. What\'s your go-to meal prep?',
-      timestamp: '8 hours ago',
-      likes: 31,
-      comments: 15,
-      image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=400',
-    },
-  ];
+      } : undefined,
+    };
+  });
 
   const toggleLike = (postId: number) => {
     setLikedPosts(prev => 
@@ -275,8 +232,7 @@ export default function SocialScreen() {
             horizontal 
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.challengesContainer}
-          >
-            {challenges.map((challenge) => (
+          >            {challengesData.map((challenge) => (
               <TouchableOpacity
                 key={challenge.id}
                 style={[styles.challengeCard, { backgroundColor: colors.card, borderColor: colors.border }]}
@@ -312,7 +268,7 @@ export default function SocialScreen() {
         {/* Activity Feed */}
         <View style={styles.feedSection}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Activity</Text>
-          {posts.map(renderPost)}
+          {postsData.map(renderPost)}
         </View>
       </ScrollView>
     </SafeAreaView>

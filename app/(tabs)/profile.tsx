@@ -14,6 +14,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Settings, CreditCard as Edit3, Trophy, Target, Calendar, Heart, Activity, Bell, Moon, Globe, Shield, CircleHelp as HelpCircle, LogOut, ChevronRight, Camera } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import { 
+  currentUser, 
+  achievements, 
+  workouts,
+  getWorkoutsByCategory,
+  formatDuration 
+} from '../../data/demoData';
 
 const { width } = Dimensions.get('window');
 const isTablet = width > 768;
@@ -39,19 +48,19 @@ export default function ProfileScreen() {
     error: '#EF4444',
   };
 
+  // Calculate user stats from demo data
+  const totalWorkouts = workouts.length;
+  const unlockedAchievements = achievements.filter(a => a.unlockedAt).length;
+  const joinDate = new Date(currentUser.joinDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
   const stats = [
-    { label: 'Workouts', value: '127', icon: Activity, color: colors.primary },
-    { label: 'Achievements', value: '24', icon: Trophy, color: colors.accent },
-    { label: 'Streak', value: '15 days', icon: Target, color: colors.success },
-    { label: 'Joined', value: 'Jan 2024', icon: Calendar, color: colors.error },
+    { label: 'Workouts', value: totalWorkouts.toString(), icon: Activity, color: colors.primary },
+    { label: 'Achievements', value: unlockedAchievements.toString(), icon: Trophy, color: colors.accent },
+    { label: 'Level', value: currentUser.fitnessLevel, icon: Target, color: colors.success },
+    { label: 'Joined', value: joinDate, icon: Calendar, color: colors.error },
   ];
 
-  const achievements = [
-    { title: 'First Mile', description: 'Completed your first mile run', icon: Trophy, unlocked: true },
-    { title: 'Week Warrior', description: '7-day workout streak', icon: Target, unlocked: true },
-    { title: 'Early Bird', description: '5 morning workouts', icon: Activity, unlocked: true },
-    { title: 'Step Master', description: '10,000 steps in a day', icon: Heart, unlocked: false },
-  ];
+  const recentAchievements = achievements.filter(a => a.unlockedAt).slice(0, 3);
 
   const menuSections = [
     {
@@ -146,9 +155,11 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
             <View style={styles.profileInfo}>
-              <Text style={[styles.profileName, { color: colors.text }]}>Alex Northrop</Text>
-              <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>alex.northrop@email.com</Text>
-              <Text style={[styles.profileJoined, { color: colors.textSecondary }]}>Member since January 2024</Text>
+              <Text style={[styles.profileName, { color: colors.text }]}>{currentUser.name}</Text>
+              <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>{currentUser.email}</Text>
+              <Text style={[styles.profileJoined, { color: colors.textSecondary }]}>
+                Member since {new Date(currentUser.joinDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </Text>
             </View>
             <TouchableOpacity style={styles.editButton}>
               <Edit3 size={20} color={colors.primary} />
@@ -183,29 +194,29 @@ export default function ProfileScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.achievementsContainer}
           >
-            {achievements.map((achievement, index) => (
+            {recentAchievements.map((achievement, index) => (
               <TouchableOpacity
-                key={index}
+                key={achievement.id}
                 style={[
                   styles.achievementCard,
                   { 
                     backgroundColor: colors.card,
                     borderColor: colors.border,
-                    opacity: achievement.unlocked ? 1 : 0.5,
+                    opacity: achievement.unlockedAt ? 1 : 0.5,
                   }
                 ]}
               >
                 <View style={[
                   styles.achievementIcon,
-                  { backgroundColor: achievement.unlocked ? colors.primary : colors.surface }
+                  { backgroundColor: achievement.unlockedAt ? colors.primary : colors.surface }
                 ]}>
-                  <achievement.icon 
+                  <Trophy 
                     size={24} 
-                    color={achievement.unlocked ? 'white' : colors.textSecondary} 
+                    color={achievement.unlockedAt ? 'white' : colors.textSecondary} 
                   />
                 </View>
                 <Text style={[styles.achievementTitle, { color: colors.text }]}>
-                  {achievement.title}
+                  {achievement.name}
                 </Text>
                 <Text style={[styles.achievementDescription, { color: colors.textSecondary }]}>
                   {achievement.description}

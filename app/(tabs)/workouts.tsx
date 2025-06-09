@@ -7,13 +7,11 @@ import {
   TouchableOpacity,
   useColorScheme,
   Dimensions,
-  TextInput,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import {
   Search,
-  Filter,
   Play,
   Clock,
   Flame,
@@ -22,18 +20,26 @@ import {
   Heart,
   Zap,
   Users,
+  Star,
 } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
+import { 
+  workouts, 
+  getWorkoutsByCategory, 
+  searchWorkouts, 
+  formatDuration, 
+  getDifficultyColor 
+} from '../../data/demoData';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const isTablet = width > 768;
-const isLargeScreen = width > 1024;
 
 export default function WorkoutsScreen() {
   const colorScheme = useColorScheme();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-
   const colors = {
     primary: '#10B981',
     secondary: '#64748B',
@@ -41,7 +47,6 @@ export default function WorkoutsScreen() {
     background: colorScheme === 'dark' ? '#0F172A' : '#FFFFFF',
     surface: colorScheme === 'dark' ? 'rgba(30, 41, 59, 0.6)' : 'rgba(248, 250, 252, 0.8)',
     card: colorScheme === 'dark' ? 'rgba(51, 65, 85, 0.7)' : 'rgba(255, 255, 255, 0.8)',
-    cardGlass: colorScheme === 'dark' ? 'rgba(51, 65, 85, 0.4)' : 'rgba(255, 255, 255, 0.4)',
     text: colorScheme === 'dark' ? '#F1F5F9' : '#0F172A',
     textSecondary: colorScheme === 'dark' ? 'rgba(148, 163, 184, 0.8)' : 'rgba(100, 116, 139, 0.8)',
     border: colorScheme === 'dark' ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.3)',
@@ -49,6 +54,10 @@ export default function WorkoutsScreen() {
     warning: '#F59E0B',
     error: '#EF4444',
   };
+
+  const filteredWorkouts = searchQuery.trim()
+    ? searchWorkouts(searchQuery)
+    : getWorkoutsByCategory(selectedCategory);
 
   const categories = [
     { name: 'All', icon: Target, color: colors.primary },
@@ -58,143 +67,75 @@ export default function WorkoutsScreen() {
     { name: 'Yoga', icon: Users, color: colors.success },
   ];
 
-  const featuredWorkouts = [
-    {
-      id: 1,
-      name: 'Morning Power',
-      description: 'High-intensity full body workout',
-      duration: '30 min',
-      calories: '350 cal',
-      difficulty: 'Advanced',
-      category: 'HIIT',
-      image: 'https://images.pexels.com/photos/416778/pexels-photo-416778.jpeg',
-      exercises: 12,
-    },
-    {
-      id: 2,
-      name: 'Core Strength',
-      description: 'Target your core with focused exercises',
-      duration: '25 min',
-      calories: '200 cal',
-      difficulty: 'Intermediate',
-      category: 'Strength',
-      image: 'https://images.pexels.com/photos/1552252/pexels-photo-1552252.jpeg',
-      exercises: 8,
-    },
-  ];
-
-  const popularWorkouts = [
-    {
-      id: 3,
-      name: 'Fat Burn Cardio',
-      description: 'Burn calories with cardio exercises',
-      duration: '45 min',
-      calories: '400 cal',
-      difficulty: 'Beginner',
-      category: 'Cardio',
-      exercises: 10,
-    },
-    {
-      id: 4,
-      name: 'Upper Body Blast',
-      description: 'Focus on arms, chest, and shoulders',
-      duration: '35 min',
-      calories: '280 cal',
-      difficulty: 'Intermediate',
-      category: 'Strength',
-      exercises: 9,
-    },
-    {
-      id: 5,
-      name: 'Flexibility Flow',
-      description: 'Improve flexibility and mobility',
-      duration: '20 min',
-      calories: '120 cal',
-      difficulty: 'Beginner',
-      category: 'Yoga',
-      exercises: 6,
-    },
-    {
-      id: 6,
-      name: 'Leg Day Intense',
-      description: 'Build lower body strength',
-      duration: '40 min',
-      calories: '320 cal',
-      difficulty: 'Advanced',
-      category: 'Strength',
-      exercises: 11,
-    },
-  ];
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Beginner': return colors.success;
-      case 'Intermediate': return colors.warning;
-      case 'Advanced': return colors.error;
-      default: return colors.textSecondary;
-    }
+  const handleWorkoutPress = (workout: any) => {
+    router.push(`/workout/${workout.id}`);
   };
 
+  const getCategoryIcon = (category: string) => {
+    const categoryObj = categories.find(cat => cat.name === category);
+    if (categoryObj) {
+      const IconComponent = categoryObj.icon;
+      return <IconComponent size={16} color={categoryObj.color} />;
+    }
+    return <Target size={16} color={colors.primary} />;
+  };
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={colorScheme === 'dark'
-          ? ['#0F172A', '#1E293B', '#334155']
-          : ['#FFFFFF', '#F8FAFC', '#F1F5F9']
-        }
-        style={styles.backgroundGradient}
+      <ScrollView 
+        style={[styles.scrollView, { backgroundColor: colors.background }]}
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: Platform.OS === 'ios' ? 100 : 80 }}
-        >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>Workouts</Text>
-          <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface }]}>
-            <Filter size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            Workouts
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+            {filteredWorkouts.length} workouts available
+          </Text>
         </View>
 
-        {/* Search Bar */}
-        <View style={[styles.searchContainer, { backgroundColor: colors.surface }]}>
-          <Search size={20} color={colors.textSecondary} />
-          <TextInput
-            style={[styles.searchInput, { color: colors.text }]}
-            placeholder="Search workouts..."
-            placeholderTextColor={colors.textSecondary}
+        {/* Search */}
+        <View style={styles.searchContainer}>          <Input
             value={searchQuery}
             onChangeText={setSearchQuery}
+            placeholder="Search workouts..."
+            leftIcon={Search}
           />
         </View>
 
-        {/* Categories */}
+        {/* Category Filter */}
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesContainer}
+          style={styles.categoriesContainer}
+          contentContainerStyle={styles.categoriesContent}
         >
-          {categories.map((category, index) => (
+          {categories.map((category) => (
             <TouchableOpacity
-              key={index}
+              key={category.name}
               style={[
-                styles.categoryItem,
-                { 
-                  backgroundColor: selectedCategory === category.name ? category.color : colors.surface,
-                  borderColor: colors.border,
+                styles.categoryChip,
+                {
+                  backgroundColor: selectedCategory === category.name 
+                    ? category.color 
+                    : colors.card,
+                  borderColor: category.color,
                 }
               ]}
               onPress={() => setSelectedCategory(category.name)}
             >
               <category.icon 
-                size={20} 
-                color={selectedCategory === category.name ? 'white' : category.color} 
+                size={16} 
+                color={selectedCategory === category.name ? '#FFFFFF' : category.color} 
               />
-              <Text 
+              <Text
                 style={[
                   styles.categoryText,
-                  { 
-                    color: selectedCategory === category.name ? 'white' : colors.text,
+                  {
+                    color: selectedCategory === category.name 
+                      ? '#FFFFFF' 
+                      : colors.text,
                   }
                 ]}
               >
@@ -204,119 +145,166 @@ export default function WorkoutsScreen() {
           ))}
         </ScrollView>
 
-        {/* Featured Workouts */}
+        {/* Featured Workout */}
+        {filteredWorkouts.length > 0 && selectedCategory === 'All' && !searchQuery && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Featured Workout
+            </Text>
+            <Card variant="glass" padding="large">
+              <TouchableOpacity
+                style={styles.featuredWorkout}
+                onPress={() => handleWorkoutPress(filteredWorkouts[0])}
+              >
+                <View style={styles.featuredContent}>
+                  <Text style={[styles.featuredTitle, { color: colors.text }]}>
+                    {filteredWorkouts[0]?.name}
+                  </Text>
+                  <Text style={[styles.featuredDescription, { color: colors.textSecondary }]}>
+                    {filteredWorkouts[0]?.description}
+                  </Text>
+                  
+                  <View style={styles.featuredStats}>
+                    <View style={styles.statItem}>
+                      <Clock size={16} color={colors.textSecondary} />
+                      <Text style={[styles.statText, { color: colors.textSecondary }]}>
+                        {formatDuration(filteredWorkouts[0]?.duration || 0)}
+                      </Text>
+                    </View>
+                    <View style={styles.statItem}>
+                      <Flame size={16} color={colors.warning} />
+                      <Text style={[styles.statText, { color: colors.textSecondary }]}>
+                        {filteredWorkouts[0]?.calories} cal
+                      </Text>
+                    </View>
+                    <View 
+                      style={[
+                        styles.difficultyBadge,
+                        {
+                          backgroundColor: `${getDifficultyColor(filteredWorkouts[0]?.difficulty || 'Easy')}20`
+                        }
+                      ]}
+                    >
+                      <Text 
+                        style={[
+                          styles.difficultyText,
+                          {
+                            color: getDifficultyColor(filteredWorkouts[0]?.difficulty || 'Easy')
+                          }
+                        ]}
+                      >
+                        {filteredWorkouts[0]?.difficulty}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                  <Button
+                  variant="primary"
+                  size="medium"
+                  title="Start Workout"
+                  onPress={() => handleWorkoutPress(filteredWorkouts[0])}
+                />
+              </TouchableOpacity>
+            </Card>
+          </View>
+        )}
+
+        {/* Workouts Grid */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Featured Workouts</Text>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.featuredContainer}
-          >
-            {featuredWorkouts.map((workout) => (
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {searchQuery ? 'Search Results' : selectedCategory === 'All' ? 'Popular Workouts' : `${selectedCategory} Workouts`}
+          </Text>
+          
+          <View style={[styles.workoutsGrid, isTablet && styles.workoutsGridTablet]}>
+            {filteredWorkouts.map((workout) => (
               <TouchableOpacity
                 key={workout.id}
-                style={[styles.featuredCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+                style={[styles.workoutCard, isTablet && styles.workoutCardTablet]}
+                onPress={() => handleWorkoutPress(workout)}
               >
-                <View style={[styles.featuredImage, { backgroundColor: colors.surface }]}>
-                  <Play size={32} color={colors.primary} />
-                </View>
-                <View style={styles.featuredContent}>
-                  <Text style={[styles.featuredTitle, { color: colors.text }]}>{workout.name}</Text>
-                  <Text style={[styles.featuredDescription, { color: colors.textSecondary }]}>
+                <Card variant="default" padding="medium">
+                  <View style={styles.workoutHeader}>
+                    <View style={styles.workoutInfo}>
+                      {getCategoryIcon(workout.category)}
+                      <Text style={[styles.workoutCategory, { color: colors.textSecondary }]}>
+                        {workout.category}
+                      </Text>
+                    </View>
+                    <View style={styles.ratingContainer}>
+                      <Star size={12} color={colors.warning} fill={colors.warning} />
+                      <Text style={[styles.rating, { color: colors.textSecondary }]}>
+                        {workout.rating}
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  <Text style={[styles.workoutTitle, { color: colors.text }]}>
+                    {workout.name}
+                  </Text>
+                  <Text style={[styles.workoutDescription, { color: colors.textSecondary }]}>
                     {workout.description}
                   </Text>
-                  <View style={styles.featuredStats}>
+                  
+                  <View style={styles.workoutStats}>
                     <View style={styles.statItem}>
                       <Clock size={14} color={colors.textSecondary} />
                       <Text style={[styles.statText, { color: colors.textSecondary }]}>
-                        {workout.duration}
+                        {formatDuration(workout.duration)}
                       </Text>
                     </View>
                     <View style={styles.statItem}>
-                      <Flame size={14} color={colors.textSecondary} />
+                      <Flame size={14} color={colors.warning} />
                       <Text style={[styles.statText, { color: colors.textSecondary }]}>
-                        {workout.calories}
-                      </Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Target size={14} color={colors.textSecondary} />
-                      <Text style={[styles.statText, { color: colors.textSecondary }]}>
-                        {workout.exercises} exercises
+                        {workout.calories} cal
                       </Text>
                     </View>
                   </View>
-                  <View style={[
-                    styles.difficultyBadge,
-                    { backgroundColor: `${getDifficultyColor(workout.difficulty)}15` }
-                  ]}>
-                    <Text style={[
-                      styles.difficultyText,
-                      { color: getDifficultyColor(workout.difficulty) }
-                    ]}>
-                      {workout.difficulty}
-                    </Text>
+                  
+                  <View style={styles.workoutFooter}>
+                    <View 
+                      style={[
+                        styles.difficultyBadge,
+                        {
+                          backgroundColor: `${getDifficultyColor(workout.difficulty)}20`
+                        }
+                      ]}
+                    >
+                      <Text 
+                        style={[
+                          styles.difficultyText,
+                          {
+                            color: getDifficultyColor(workout.difficulty)
+                          }
+                        ]}
+                      >
+                        {workout.difficulty}
+                      </Text>
+                    </View>
+                    
+                    <TouchableOpacity
+                      style={[styles.playButton, { backgroundColor: colors.primary }]}
+                      onPress={() => handleWorkoutPress(workout)}
+                    >
+                      <Play size={12} color="#FFFFFF" />
+                    </TouchableOpacity>
                   </View>
-                </View>
+                </Card>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
         </View>
 
-        {/* Popular Workouts */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Popular Workouts</Text>
-          {popularWorkouts.map((workout) => (
-            <TouchableOpacity
-              key={workout.id}
-              style={[styles.workoutCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-            >
-              <View style={[styles.workoutIcon, { backgroundColor: colors.surface }]}>
-                <Play size={24} color={colors.primary} />
-              </View>
-              <View style={styles.workoutContent}>
-                <View style={styles.workoutHeader}>
-                  <Text style={[styles.workoutTitle, { color: colors.text }]}>{workout.name}</Text>
-                  <View style={[
-                    styles.difficultyBadge,
-                    { backgroundColor: `${getDifficultyColor(workout.difficulty)}15` }
-                  ]}>
-                    <Text style={[
-                      styles.difficultyText,
-                      { color: getDifficultyColor(workout.difficulty) }
-                    ]}>
-                      {workout.difficulty}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={[styles.workoutDescription, { color: colors.textSecondary }]}>
-                  {workout.description}
-                </Text>
-                <View style={styles.workoutStats}>
-                  <View style={styles.statItem}>
-                    <Clock size={14} color={colors.textSecondary} />
-                    <Text style={[styles.statText, { color: colors.textSecondary }]}>
-                      {workout.duration}
-                    </Text>
-                  </View>
-                  <View style={styles.statItem}>
-                    <Flame size={14} color={colors.textSecondary} />
-                    <Text style={[styles.statText, { color: colors.textSecondary }]}>
-                      {workout.calories}
-                    </Text>
-                  </View>
-                  <View style={styles.statItem}>
-                    <Target size={14} color={colors.textSecondary} />
-                    <Text style={[styles.statText, { color: colors.textSecondary }]}>
-                      {workout.exercises} exercises
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-        </ScrollView>
-      </LinearGradient>
+        {/* Quick Start */}
+        {filteredWorkouts.length > 0 && (
+          <View style={styles.quickStartContainer}>            <Button
+              variant="outline"
+              size="large"
+              title="Quick Start Random Workout"
+              onPress={() => handleWorkoutPress(filteredWorkouts[Math.floor(Math.random() * filteredWorkouts.length)])}
+            />
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -325,177 +313,168 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  backgroundGradient: {
+  scrollView: {
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: isTablet ? 40 : 20,
-    paddingTop: 10,
-    paddingBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
   },
-  title: {
-    fontSize: isTablet ? 32 : 28,
-    fontFamily: 'Inter-Bold',
-  },
-  filterButton: {
-    width: isTablet ? 52 : 44,
-    height: isTablet ? 52 : 44,
-    borderRadius: isTablet ? 26 : 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: isTablet ? 40 : 20,
-    paddingHorizontal: isTablet ? 20 : 16,
-    paddingVertical: isTablet ? 16 : 14,
-    borderRadius: 16,
-    marginBottom: 20,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 12,
-    fontSize: isTablet ? 18 : 16,
-    fontFamily: 'Inter-Regular',
-  },
-  categoriesContainer: {
-    paddingHorizontal: isTablet ? 40 : 20,
-    paddingBottom: 24,
-  },
-  categoryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: isTablet ? 20 : 16,
-    paddingVertical: isTablet ? 12 : 10,
-    borderRadius: 25,
-    marginRight: isTablet ? 16 : 12,
-    borderWidth: 0.5,
-  },
-  categoryText: {
-    marginLeft: 8,
-    fontSize: isTablet ? 16 : 14,
-    fontFamily: 'Inter-Medium',
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: isTablet ? 24 : 20,
-    fontFamily: 'Inter-Bold',
-    paddingHorizontal: isTablet ? 40 : 20,
-    marginBottom: 16,
-  },
-  featuredContainer: {
-    paddingHorizontal: isTablet ? 40 : 20,
-  },
-  featuredCard: {
-    width: isTablet ? 350 : 280,
-    borderRadius: 20,
-    marginRight: isTablet ? 20 : 16,
-    borderWidth: 0.5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-    overflow: 'hidden',
-  },
-  featuredImage: {
-    height: isTablet ? 180 : 140,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  featuredContent: {
-    padding: isTablet ? 20 : 16,
-  },
-  featuredTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
     marginBottom: 4,
   },
-  featuredDescription: {
+  headerSubtitle: {
+    fontSize: 16,
+  },
+  searchContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  categoriesContainer: {
+    marginBottom: 20,
+  },
+  categoriesContent: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    gap: 6,
+  },
+  categoryText: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginBottom: 12,
-    lineHeight: 20,
+    fontWeight: '500',
+  },
+  section: {
+    paddingHorizontal: 20,
+    marginBottom: 30,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  featuredWorkout: {
+    gap: 16,
+  },
+  featuredContent: {
+    gap: 12,
+  },
+  featuredTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  featuredDescription: {
+    fontSize: 16,
+    lineHeight: 24,
   },
   featuredStats: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-    gap: 12,
-  },
-  statItem: {
-    flexDirection: 'row',
     alignItems: 'center',
+    gap: 16,
   },
-  statText: {
-    marginLeft: 4,
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
+  workoutsGrid: {
+    gap: 16,
   },
-  difficultyBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  difficultyText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
+  workoutsGridTablet: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   workoutCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: isTablet ? 40 : 20,
-    padding: isTablet ? 20 : 16,
-    borderRadius: 20,
-    marginBottom: isTablet ? 16 : 12,
-    borderWidth: 0.5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-    overflow: 'hidden',
-  },
-  workoutIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  workoutContent: {
     flex: 1,
+  },
+  workoutCardTablet: {
+    width: '48%',
   },
   workoutHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
+  },
+  workoutInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  workoutCategory: {
+    fontSize: 12,
+    textTransform: 'uppercase',
+    fontWeight: '500',
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  rating: {
+    fontSize: 12,
   },
   workoutTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    flex: 1,
-    marginRight: 12,
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
   },
   workoutDescription: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginBottom: 8,
     lineHeight: 20,
+    marginBottom: 12,
   },
   workoutStats: {
     flexDirection: 'row',
     gap: 16,
+    marginBottom: 12,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  statText: {
+    fontSize: 12,
+  },
+  workoutFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  difficultyBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  difficultyText: {
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  playButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  quickStartContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  quickStartText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
