@@ -41,7 +41,7 @@ A comprehensive, cross-platform fitness app built with React Native and TypeScri
 
 ## Preview
 
-<img src="./assets/images/Fitness Tracking App.png" alt="Mobile App Preview" width="300" />
+<img src="./assets/images/Fitness Tracking App.png" alt="Mobile App Preview" width="600" />
 
 This is a demo preview of the application interface.
 
