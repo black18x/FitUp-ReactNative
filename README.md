@@ -2,14 +2,19 @@
 
 A comprehensive, cross-platform fitness app built with React Native and TypeScript. FitUp empowers users to track their workouts, monitor progress, engage with a fitness community, and achieve health goals through a modern, interactive mobile experience.
 
-[Live Demo](https://fit-up-react-native.vercel.app)
+---
+
+## Preview
+
+<img src="./assets/images/Fitness Tracking App.png" alt="Mobile App Preview" width="600" />
+
+This is a demo preview of the application interface.
 
 ---
 
 ## Table of Contents
 
 - [Features](#features)
-- [Preview](#preview)
 - [App Architecture & Folder Structure](#app-architecture--folder-structure)
 - [Core Modules & Screens](#core-modules--screens)
 - [Detailed Features](#detailed-features)
@@ -36,15 +41,6 @@ A comprehensive, cross-platform fitness app built with React Native and TypeScri
 - **Modern Design:** Responsive UI, dark/light mode, animated transitions, and reusable UI components.
 - **Data Visualization:** Line and bar charts for activity and progress, quick stats, performance highlights.
 - **Demo Data:** Local demo data for bootstrapping and development.
-
----
-
-## Preview
-
-<img src="./assets/images/Fitness Tracking App.png" alt="Mobile App Preview" width="600" />
-
-This is a demo preview of the application interface.
-
 
 ---
 
