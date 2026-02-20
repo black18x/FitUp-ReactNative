@@ -197,7 +197,7 @@ Located in `data/demoData.ts`:
 ### Setup
 
 ```sh
-git clone https://github.com/NafisRayan/FitUp-ReactNative.git
+git clone https://github.com/black18x/FitUp-ReactNative.git
 cd FitUp-ReactNative
 npm install   # or yarn install
 ```
@@ -242,8 +242,8 @@ No license specified yet. Add a LICENSE file as needed.
 
 ## Contact
 
-**Author:** [Nafis Rayan](https://github.com/NafisRayan)  
+**Author:** [Blake Whirlow](https://github.com/black18x)    
 Have questions or want to contribute?  
-[Open an issue](https://github.com/NafisRayan/FitUp-ReactNative/issues) or email: your-email@example.com
+[Open an issue](https://github.com/black18x/FitUp-ReactNative/issues) or email: your-email@example.com
 
 ---
