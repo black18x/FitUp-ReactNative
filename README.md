@@ -244,6 +244,7 @@ No license specified yet. Add a LICENSE file as needed.
 
 **Author:** [Blake Whirlow](https://github.com/black18x)    
 Have questions or want to contribute?  
-[Open an issue](https://github.com/black18x/FitUp-ReactNative/issues) or email: your-email@example.com
+[Open an issue](https://github.com/black18x/FitUp-ReactNative/issues) or email: black.dev.mail@gmail.com
 
 ---
+
